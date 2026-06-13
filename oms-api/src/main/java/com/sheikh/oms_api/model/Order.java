@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.Hibernate;
+
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -31,7 +33,7 @@ public class Order {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
+    //Hibernate needs a no-argument constructor so it can create objects when reading from the database.
     protected Order() {
     }
 
@@ -89,5 +91,60 @@ public class Order {
 
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
+    }
+    //update status
+    public void sendToRisk() {
+    if (status != OrderStatus.NEW) {
+        throw new IllegalStateException("Only NEW orders can be sent to risk");
+    }
+
+    status = OrderStatus.PENDING_RISK;
+    updatedAt = LocalDateTime.now();
+    }
+
+    public void approveRisk() {
+        if (status != OrderStatus.PENDING_RISK) {
+            throw new IllegalStateException("Only PENDING_RISK orders can be approved");
+        }
+
+        status = OrderStatus.RISK_APPROVED;
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void rejectRisk() {
+        if (status != OrderStatus.PENDING_RISK) {
+            throw new IllegalStateException("Only PENDING_RISK orders can be rejected");
+        }
+
+        status = OrderStatus.RISK_REJECTED;
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void sendToExecution() {
+        if (status != OrderStatus.RISK_APPROVED) {
+            throw new IllegalStateException("Only RISK_APPROVED orders can be sent to execution");
+        }
+
+        status = OrderStatus.SENT_TO_EXECUTION;
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void partiallyFill() {
+        if (status != OrderStatus.SENT_TO_EXECUTION) {
+            throw new IllegalStateException("Only SENT_TO_EXECUTION orders can be partially filled");
+        }
+
+        status = OrderStatus.PARTIALLY_FILLED;
+        updatedAt = LocalDateTime.now();
+    }
+
+    public void fill() {
+        if (status != OrderStatus.SENT_TO_EXECUTION &&
+            status != OrderStatus.PARTIALLY_FILLED) {
+            throw new IllegalStateException("Only executable orders can be filled");
+        }
+
+        status = OrderStatus.FILLED;
+        updatedAt = LocalDateTime.now();
     }
 }
