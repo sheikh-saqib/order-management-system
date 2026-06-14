@@ -2,6 +2,7 @@ package com.sheikh.oms_api.service;
 
 import com.sheikh.oms_api.Interface.IOrderService;
 import com.sheikh.oms_api.dto.CreateOrderRequest;
+import com.sheikh.oms_api.dto.OrderEventResponse;
 import com.sheikh.oms_api.dto.OrderResponse;
 import com.sheikh.oms_api.exception.OrderNotFoundException;
 import com.sheikh.oms_api.model.Order;
@@ -82,9 +83,14 @@ public class OrderService implements IOrderService {
             throw new IllegalArgumentException("Limit price is required for LIMIT orders");
         }
     }
-    public List<OrderEvent> getOrderEvents(Long id) {
+    public List<OrderEventResponse> getOrderEvents(Long id) {
+
         findOrderById(id);
-        return orderEventRepository.findByOrderId(id);
+
+        return orderEventRepository.findByOrderId(id)
+        .stream()
+        .map(OrderEventResponse::from)
+        .toList();
     }
 
     public OrderResponse sendToRisk(Long id) {
