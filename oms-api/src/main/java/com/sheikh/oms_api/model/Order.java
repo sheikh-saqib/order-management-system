@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 
 import org.hibernate.Hibernate;
 
+import com.sheikh.oms_api.exception.InvalidOrderStateException;
+
 @Entity
 @Table(name = "orders")
 public class Order {
@@ -50,7 +52,7 @@ public class Order {
 
     public void cancel() {
         if (this.status == OrderStatus.CANCELLED) {
-            throw new IllegalStateException("Order is already cancelled");
+            throw new InvalidOrderStateException("Order is already cancelled");
         }
 
         this.status = OrderStatus.CANCELLED;
@@ -95,7 +97,7 @@ public class Order {
     //update status
     public void sendToRisk() {
     if (status != OrderStatus.NEW) {
-        throw new IllegalStateException("Only NEW orders can be sent to risk");
+        throw new InvalidOrderStateException("Only NEW orders can be sent to risk");
     }
 
     status = OrderStatus.PENDING_RISK;
@@ -104,7 +106,7 @@ public class Order {
 
     public void approveRisk() {
         if (status != OrderStatus.PENDING_RISK) {
-            throw new IllegalStateException("Only PENDING_RISK orders can be approved");
+            throw new InvalidOrderStateException("Only PENDING_RISK orders can be approved");
         }
 
         status = OrderStatus.RISK_APPROVED;
@@ -113,7 +115,7 @@ public class Order {
 
     public void rejectRisk() {
         if (status != OrderStatus.PENDING_RISK) {
-            throw new IllegalStateException("Only PENDING_RISK orders can be rejected");
+            throw new InvalidOrderStateException("Only PENDING_RISK orders can be rejected");
         }
 
         status = OrderStatus.RISK_REJECTED;
@@ -122,7 +124,7 @@ public class Order {
 
     public void sendToExecution() {
         if (status != OrderStatus.RISK_APPROVED) {
-            throw new IllegalStateException("Only RISK_APPROVED orders can be sent to execution");
+            throw new InvalidOrderStateException("Only RISK_APPROVED orders can be sent to execution");
         }
 
         status = OrderStatus.SENT_TO_EXECUTION;
@@ -131,7 +133,7 @@ public class Order {
 
     public void partiallyFill() {
         if (status != OrderStatus.SENT_TO_EXECUTION) {
-            throw new IllegalStateException("Only SENT_TO_EXECUTION orders can be partially filled");
+            throw new InvalidOrderStateException("Only SENT_TO_EXECUTION orders can be partially filled");
         }
 
         status = OrderStatus.PARTIALLY_FILLED;
@@ -141,7 +143,7 @@ public class Order {
     public void fill() {
         if (status != OrderStatus.SENT_TO_EXECUTION &&
             status != OrderStatus.PARTIALLY_FILLED) {
-            throw new IllegalStateException("Only executable orders can be filled");
+            throw new InvalidOrderStateException("Only executable orders can be filled");
         }
 
         status = OrderStatus.FILLED;
